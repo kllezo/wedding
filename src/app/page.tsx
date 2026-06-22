@@ -1,65 +1,93 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import Chapter1Welcome from "@/components/Chapter1Welcome";
+import CardCover from "@/components/CardCover";
+import MusicToggle from "@/components/MusicToggle";
+import PetalRain from "@/components/PetalRain";
+import GlobalBorder from "@/components/GlobalBorder";
+import Hero from "@/components/Hero";
+import Couple from "@/components/Couple";
+import Details from "@/components/Details";
+import Timeline from "@/components/Timeline";
+import TeluguInvitation from "@/components/TeluguInvitation";
+import Family from "@/components/Family";
+import Footer from "@/components/Footer";
 
 export default function Home() {
+  // 0: Chapter 1 Sacred Welcome (Diya self-lights, dark temple background)
+  // 1: Chapter 2 Gatefold Card Cover (closed doors, monogram seal button)
+  // 2: Chapters 3-8 Revealed (continuous ivory parchment scroll)
+  const [welcomeStep, setWelcomeStep] = useState<0 | 1 | 2>(0);
+
+  const isOpened = welcomeStep === 2;
+
+  const handleOpenInvitation = () => {
+    setWelcomeStep(2);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div
+      className={`relative min-h-screen parchment-bg kalamkari-watermark transition-colors duration-1000 ${
+        !isOpened ? "h-screen overflow-hidden" : ""
+      }`}
+    >
+      <AnimatePresence mode="wait">
+        {welcomeStep === 0 && (
+          <motion.div
+            key="welcome-step"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 pointer-events-auto"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <Chapter1Welcome onComplete={() => setWelcomeStep(1)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating flower petals raining in background (active after welcome screen) */}
+      {welcomeStep >= 1 && <PetalRain />}
+
+      {/* Opening experience - Gatefold Invitation Cover overlay */}
+      {welcomeStep >= 1 && (
+        <CardCover onOpen={handleOpenInvitation} />
+      )}
+
+      {/* Floating music toggle */}
+      <MusicToggle autoPlayTrigger={isOpened} />
+
+      {/* Persistent screen border system */}
+      {welcomeStep >= 1 && <GlobalBorder />}
+
+      {/* Main website content underneath the overlay doors */}
+      {welcomeStep >= 1 && (
+        <motion.main
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isOpened ? 1 : 0.3 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="w-full relative z-20 overflow-x-hidden pt-4 pb-4"
+        >
+          {/* Intricate decorative border framing content wrapper on desktop */}
+          <div className="max-w-screen-md mx-auto relative px-3 md:px-0">
+            <Hero />
+            
+            <Couple />
+            
+            <Details />
+            
+            <Timeline />
+            
+            <TeluguInvitation />
+            
+            <Family />
+            
+            <Footer />
+          </div>
+        </motion.main>
+      )}
     </div>
   );
 }
+
