@@ -100,51 +100,10 @@ export default function EditorialSpread() {
       {/* 3-Portrait Editorial Composition */}
       <div className="w-full max-w-xl relative flex items-center justify-center min-h-[380px] sm:min-h-[460px] md:min-h-[500px] z-10 px-2 my-4">
         
-        {/* Photo 2: Bride Portrait (Smaller left, slides left) */}
+        {/* Photo 1: Groom Portrait (Smaller left, slides left) */}
         <div 
           ref={brideCardRef}
           className="absolute left-[0%] sm:left-[6%] w-[32%] aspect-[3/4] bg-[#FDFBF7] p-1.5 sm:p-2 rounded-lg border gold-foil-border shadow-[0_15px_30px_rgba(0,0,0,0.35)] z-30 will-change-transform"
-        >
-          <div className="absolute inset-1 border border-[#C59B27]/25 rounded pointer-events-none" />
-          <div className="relative w-full h-full rounded overflow-hidden">
-            <Image 
-              src="/images/bride.jpg" 
-              alt="Bride Portrait"
-              fill
-              className="object-cover"
-              sizes="(max-w-768px) 33vw, 180px"
-              priority
-            />
-          </div>
-          <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
-            <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
-              వధువు
-            </span>
-          </div>
-        </div>
-
-        {/* Photo 1: Couple Portrait (Large center, slides up) */}
-        <div 
-          ref={coupleCardRef}
-          className="w-[50%] aspect-[3/4] bg-[#FDFBF7] p-2.5 sm:p-3.5 rounded-lg border-2 gold-foil-border shadow-[0_20px_45px_-10px_rgba(0,0,0,0.5)] z-20 relative will-change-transform"
-        >
-          <div className="absolute inset-1.5 border border-[#C59B27]/30 rounded pointer-events-none" />
-          <div className="relative w-full h-full rounded overflow-hidden">
-            <Image 
-              src="/images/groom-and-bride.jpg" 
-              alt="Sai Jyoshna & Vikram"
-              fill
-              className="object-cover"
-              sizes="(max-w-768px) 50vw, 280px"
-              priority
-            />
-          </div>
-        </div>
-
-        {/* Photo 3: Groom Portrait (Smaller right, slides right) */}
-        <div 
-          ref={groomCardRef}
-          className="absolute right-[0%] sm:right-[6%] w-[32%] aspect-[3/4] bg-[#FDFBF7] p-1.5 sm:p-2 rounded-lg border gold-foil-border shadow-[0_15px_30px_rgba(0,0,0,0.35)] z-10 will-change-transform"
         >
           <div className="absolute inset-1 border border-[#C59B27]/25 rounded pointer-events-none" />
           <div className="relative w-full h-full rounded overflow-hidden">
@@ -160,6 +119,52 @@ export default function EditorialSpread() {
           <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
             <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
               వరుడు
+            </span>
+          </div>
+        </div>
+
+        {/* Photo 2: Bride Portrait (Large center, slides up) */}
+        <div 
+          ref={coupleCardRef}
+          className="w-[50%] aspect-[3/4] bg-[#FDFBF7] p-2.5 sm:p-3.5 rounded-lg border-2 gold-foil-border shadow-[0_20px_45px_-10px_rgba(0,0,0,0.5)] z-20 relative will-change-transform"
+        >
+          <div className="absolute inset-1.5 border border-[#C59B27]/30 rounded pointer-events-none" />
+          <div className="relative w-full h-full rounded overflow-hidden">
+            <Image 
+              src="/images/bride.jpg" 
+              alt="Sai Jyoshna"
+              fill
+              className="object-cover"
+              sizes="(max-w-768px) 50vw, 280px"
+              priority
+            />
+          </div>
+          <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
+            <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
+              వధువు
+            </span>
+          </div>
+        </div>
+
+        {/* Photo 3: Couple Photo (Smaller right, slides right) */}
+        <div 
+          ref={groomCardRef}
+          className="absolute right-[0%] sm:right-[6%] w-[32%] aspect-[3/4] bg-[#FDFBF7] p-1.5 sm:p-2 rounded-lg border gold-foil-border shadow-[0_15px_30px_rgba(0,0,0,0.35)] z-10 will-change-transform"
+        >
+          <div className="absolute inset-1 border border-[#C59B27]/25 rounded pointer-events-none" />
+          <div className="relative w-full h-full rounded overflow-hidden">
+            <Image 
+              src="/images/groom-and-bride.jpg" 
+              alt="Together"
+              fill
+              className="object-cover"
+              sizes="(max-w-768px) 33vw, 180px"
+              priority
+            />
+          </div>
+          <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
+            <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
+              కలిసి
             </span>
           </div>
         </div>

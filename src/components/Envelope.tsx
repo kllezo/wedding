@@ -191,6 +191,8 @@ export default function Envelope({ onOpen, musicRef }: EnvelopeProps) {
                 style={{
                   width: "clamp(200px, 38vmin, 268px)",
                   height: "clamp(200px, 38vmin, 268px)",
+                  overflow: "hidden",
+                  borderRadius: "50%",
                 }}
               >
                 {/* Gold decorative ring (SVG circles behind the stamp) */}
@@ -221,22 +223,28 @@ export default function Envelope({ onOpen, musicRef }: EnvelopeProps) {
                   <circle cx="187" cy="95" r="2.5" fill="#D4AF37" opacity="0.8" />
                 </svg>
 
-                {/* The actual stamp image — sits inside the gold ring */}
+                {/* The actual stamp image — scaled up so logo fills ring face */}
                 <div
                   className="absolute"
                   style={{
-                    inset: "6%",
+                    inset: "3%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    overflow: "visible",
                   }}
                 >
                   <img
                     src="/images/stamp.png"
                     alt="Royal Wax Seal — Tap to Open"
-                    className="w-full h-full object-contain select-none"
+                    className="select-none"
                     draggable={false}
                     style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      transform: "scale(1.6)",
+                      transformOrigin: "center center",
                       filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
                     }}
                   />

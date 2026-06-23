@@ -202,7 +202,7 @@ export default function InvitationHero() {
                 <h1 className="font-playfair text-4xl md:text-5xl font-extrabold tracking-wide text-[#42040B] drop-shadow-md">
                   Sai Jyoshna
                 </h1>
-                <p className="font-cormorant text-[13px] md:text-[15px] font-bold tracking-[0.18em] text-[#A67C1E]/85 uppercase mt-1">
+                <p className="font-cormorant text-[13px] md:text-[15px] font-semibold tracking-[0.18em] text-[#7A5A12] uppercase mt-1">
                   D/o. Thammishetty Kishan & Saritha
                 </p>
               </div>
@@ -220,7 +220,7 @@ export default function InvitationHero() {
                 <h1 className="font-playfair text-4xl md:text-5xl font-extrabold tracking-wide text-[#42040B] drop-shadow-md">
                   Vikram
                 </h1>
-                <p className="font-cormorant text-[13px] md:text-[15px] font-bold tracking-[0.18em] text-[#A67C1E]/85 uppercase mt-1">
+                <p className="font-cormorant text-[13px] md:text-[15px] font-semibold tracking-[0.18em] text-[#7A5A12] uppercase mt-1">
                   S/o. Alladi Nagesh & Manjula
                 </p>
               </div>
