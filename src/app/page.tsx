@@ -33,8 +33,8 @@ export default function Home() {
       {/* Floating flower petals and gold dust */}
       <PetalRain />
 
-      {/* Persistent floating mute button — always visible */}
-      <MusicToggle ref={musicRef} visible={true} />
+      {/* Floating mute button — hidden until music starts, fades in after stamp tap */}
+      <MusicToggle ref={musicRef} />
 
       {/* Screen border (only after opening) */}
       {isOpened && <GlobalBorder />}
