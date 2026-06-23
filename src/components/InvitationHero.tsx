@@ -203,7 +203,7 @@ export default function InvitationHero() {
                   Sai Jyoshna
                 </h1>
                 <p className="font-cormorant text-[13px] md:text-[15px] font-semibold tracking-[0.18em] text-[#7A5A12] uppercase mt-1">
-                  D/o. Thammishetty Kishan & Saritha
+                  D/o. Thammishetty Saritha & Kishan
                 </p>
               </div>
 
