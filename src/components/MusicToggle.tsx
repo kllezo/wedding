@@ -1,95 +1,145 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+
+export interface MusicToggleHandle {
+  play: () => void;
+}
 
 interface MusicToggleProps {
-  autoPlayTrigger?: boolean;
+  visible?: boolean;
 }
 
-export default function MusicToggle({ autoPlayTrigger = false }: MusicToggleProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+const MusicToggle = forwardRef<MusicToggleHandle, MusicToggleProps>(
+  function MusicToggle({ visible = true }, ref) {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const ctxRef = useRef<AudioContext | null>(null);
+    const unlockedRef = useRef(false);
 
-  // You can replace this URL with a direct link to any traditional Nadaswaram or Veena MP3
-  const audioUrl = "https://archive.org/download/veena-instrumental/Veena_Instrumental_Traditional.mp3";
+    // Candidate audio URLs (tried in order; first to load wins)
+    const AUDIO_URLS = [
+      // Free-to-use veena / nadaswaram from Internet Archive
+      "https://ia801908.us.archive.org/15/items/veena-instrumental/Veena_Instrumental_Traditional.mp3",
+      // Fallback — short pleasant harp loop
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    ];
 
-  useEffect(() => {
-    // Initialize audio on mount
-    audioRef.current = new Audio(audioUrl);
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.4; // Soft background volume
+    useEffect(() => {
+      const audio = new Audio();
+      audio.loop = true;
+      audio.volume = 0.35;
+      audio.preload = "auto";
+      audio.crossOrigin = "anonymous";
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      // Try URLs sequentially until one loads
+      let urlIndex = 0;
+      const tryNext = () => {
+        if (urlIndex >= AUDIO_URLS.length) return;
+        audio.src = AUDIO_URLS[urlIndex++];
+        audio.load();
+      };
+      audio.addEventListener("error", tryNext);
+      tryNext();
+
+      audioRef.current = audio;
+
+      return () => {
+        audio.pause();
+        audio.src = "";
         audioRef.current = null;
+        ctxRef.current?.close();
+      };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Called from stamp tap — runs inside user gesture so AudioContext unlocks
+    useImperativeHandle(ref, () => ({
+      play() {
+        if (unlockedRef.current) return;
+        unlockedRef.current = true;
+
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // Create AudioContext inside gesture to bypass autoplay policy
+        try {
+          const AudioContextClass =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const ctx = new AudioContextClass();
+          ctxRef.current = ctx;
+          // Connect audio element to this context so it's "unlocked"
+          const src = ctx.createMediaElementSource(audio);
+          src.connect(ctx.destination);
+          ctx.resume().then(() => {
+            audio.play()
+              .then(() => setIsPlaying(true))
+              .catch((e) => console.warn("Audio play failed:", e));
+          });
+        } catch {
+          // Fallback: plain play() inside gesture
+          audio.play()
+            .then(() => setIsPlaying(true))
+            .catch((e) => console.warn("Audio play fallback failed:", e));
+        }
+      },
+    }));
+
+    const toggle = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        // If not yet unlocked, unlock now (toggle is also a user gesture)
+        if (!unlockedRef.current) {
+          unlockedRef.current = true;
+          try {
+            const AudioContextClass =
+              window.AudioContext ||
+              (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            const ctx = ctxRef.current ?? new AudioContextClass();
+            ctxRef.current = ctx;
+            if (!ctxRef.current) {
+              const src = ctx.createMediaElementSource(audio);
+              src.connect(ctx.destination);
+            }
+            ctx.resume();
+          } catch { /* noop */ }
+        }
+        audio.play()
+          .then(() => setIsPlaying(true))
+          .catch((e) => console.warn("Toggle play failed:", e));
       }
     };
-  }, []);
 
-  useEffect(() => {
-    if (autoPlayTrigger && audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((err) => {
-          console.log("Autoplay blocked or failed:", err);
-        });
-    }
-  }, [autoPlayTrigger]);
+    if (!visible) return null;
 
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((err) => {
-          console.log("Play failed:", err);
-        });
-    }
-  };
-
-  return (
-    <div className="fixed top-4 right-4 z-40 pointer-events-auto">
+    return (
       <button
-        onClick={togglePlay}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-lg transition-all duration-300 transform active:scale-95 group ${
-          isPlaying
-            ? "bg-[#5E0914] border-[#C59B27] text-[#FDF0A6] animate-pulse"
-            : "bg-[#FDFBF7]/90 border-[#C59B27]/40 text-[#5E0914] hover:bg-[#F5F0E4]"
-        }`}
+        onClick={toggle}
+        aria-label={isPlaying ? "Mute music" : "Play music"}
+        title={isPlaying ? "Mute music" : "Play music"}
+        className="fixed bottom-5 left-5 z-[999] flex items-center justify-center transition-all duration-200 active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C59B27]"
+        style={{
+          width: "38px",
+          height: "38px",
+          borderRadius: "50%",
+          background: "rgba(20,1,4,0.80)",
+          border: "1.5px solid rgba(197,155,39,0.65)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 3px 14px rgba(0,0,0,0.55), 0 0 8px rgba(197,155,39,0.18)",
+        }}
       >
-        <span className="relative flex h-2 w-2 items-center justify-center">
-          {isPlaying && (
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FDF0A6] opacity-75"></span>
-          )}
-          <span
-            className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
-              isPlaying ? "bg-[#FDF0A6]" : "bg-[#5E0914]"
-            }`}
-          ></span>
+        <span className="text-[17px] leading-none select-none" aria-hidden="true">
+          {isPlaying ? "🔊" : "🔇"}
         </span>
-        
-        <span className="font-cormorant text-[11px] md:text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5">
-          <span>🎵 Traditional Wedding Music</span>
-        </span>
-
-        {isPlaying ? (
-          <Volume2 className="w-3.5 h-3.5 text-[#FDF0A6]" />
-        ) : (
-          <VolumeX className="w-3.5 h-3.5 text-[#5E0914]/60" />
-        )}
       </button>
-    </div>
-  );
-}
+    );
+  }
+);
+
+export default MusicToggle;

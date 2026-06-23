@@ -33,7 +33,6 @@ export default function PetalRain() {
       speedX: number;
       angle: number;
       spin: number;
-      type: "rose" | "jasmine";
       opacity: number;
     }
 
@@ -55,7 +54,6 @@ export default function PetalRain() {
     const maxDust = 30;
 
     const createPetal = (isInitial = false): Petal => {
-      const type = Math.random() > 0.4 ? "rose" : "jasmine";
       return {
         x: Math.random() * width,
         y: isInitial ? Math.random() * height : -20,
@@ -64,8 +62,7 @@ export default function PetalRain() {
         speedX: Math.random() * 0.4 - 0.2,
         angle: Math.random() * Math.PI * 2,
         spin: Math.random() * 0.02 - 0.01,
-        type,
-        opacity: Math.random() * 0.45 + 0.45, // Between 0.45 and 0.90 for clean print look
+        opacity: Math.random() * 0.45 + 0.45,
       };
     };
 
@@ -106,24 +103,7 @@ export default function PetalRain() {
       c.fill();
     };
 
-    const drawJasminePetal = (c: CanvasRenderingContext2D, size: number) => {
-      c.beginPath();
-      c.ellipse(0, 0, size / 1.8, size, 0, 0, Math.PI * 2);
-      c.closePath();
-      
-      const grad = c.createLinearGradient(0, -size, 0, size);
-      grad.addColorStop(0, "#FFFFFF");
-      grad.addColorStop(0.85, "#FFFDF0");
-      grad.addColorStop(1, "#FFF59D"); // Yellow stalk tip
-      c.fillStyle = grad;
-      c.fill();
-      
-      // Small orange dot at base
-      c.beginPath();
-      c.arc(0, size - 1.5, 0.8, 0, Math.PI * 2);
-      c.fillStyle = "#E67E22";
-      c.fill();
-    };
+
 
     // Volumetric golden light rays originating from top center
     const drawLightRays = (c: CanvasRenderingContext2D, w: number, h: number) => {
@@ -222,11 +202,7 @@ export default function PetalRain() {
         ctx.rotate(p.angle);
         ctx.globalAlpha = p.opacity;
 
-        if (p.type === "rose") {
-          drawRosePetal(ctx, p.size);
-        } else {
-          drawJasminePetal(ctx, p.size);
-        }
+        drawRosePetal(ctx, p.size);
 
         ctx.restore();
       });
@@ -245,7 +221,7 @@ export default function PetalRain() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-10 select-none bg-transparent"
+      className="fixed inset-0 w-full h-full pointer-events-none z-40 select-none bg-transparent"
     />
   );
 }

@@ -1,36 +1,82 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import React, { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function EditorialSpread() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  
-  // Track scroll progress of the gallery section
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
+  const brideCardRef = useRef<HTMLDivElement>(null);
+  const groomCardRef = useRef<HTMLDivElement>(null);
+  const coupleCardRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
-  const springConfig = { damping: 18, stiffness: 60 };
+  useEffect(() => {
+    if (!sectionRef.current) return;
 
-  // Parallax offsets for the overlapping photos
-  const yPhoto1 = useTransform(scrollYProgress, [0, 1], [0, 0]); // Anchor
-  const yPhoto2 = useTransform(scrollYProgress, [0, 1], [50, -50]); // Slides up
-  const yPhoto2Spring = useSpring(yPhoto2, springConfig);
+    const ctx = gsap.context(() => {
+      // Subtle parallax drifting on scroll
+      gsap.to(brideCardRef.current, {
+        x: -30,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        }
+      });
 
-  const yPhoto3 = useTransform(scrollYProgress, [0, 1], [-30, 40]); // Slides down
-  const yPhoto3Spring = useSpring(yPhoto3, springConfig);
+      gsap.to(groomCardRef.current, {
+        x: 30,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        }
+      });
 
-  const textOpacity = useTransform(scrollYProgress, [0.1, 0.4], [0, 1]);
-  const textY = useTransform(scrollYProgress, [0.1, 0.4], [30, 0]);
-  const textYSpring = useSpring(textY, springConfig);
+      gsap.to(coupleCardRef.current, {
+        y: -40,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        }
+      });
+
+      // Editorial caption fade-in
+      gsap.fromTo(textRef.current, 
+        { opacity: 0, y: 30 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          scrollTrigger: {
+            trigger: textRef.current,
+            start: "top 90%",
+            end: "top 65%",
+            scrub: 1,
+          }
+        }
+      );
+    }, sectionRef);
+
+    return () => {
+      ctx.revert();
+    };
+  }, []);
 
   return (
     <section 
       ref={sectionRef}
-      className="relative px-4 py-24 bg-transparent text-[#42040B] overflow-hidden flex flex-col items-center border-b border-[#C59B27]/20"
+      className="relative px-4 py-20 bg-transparent text-[#42040B] overflow-hidden flex flex-col items-center border-b border-[#C59B27]/20"
     >
       
       {/* Decorative background grids/watermarks */}
@@ -41,13 +87,7 @@ export default function EditorialSpread() {
       </div>
 
       {/* Section Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="flex flex-col items-center mb-16 text-center z-10"
-      >
+      <div className="flex flex-col items-center mb-10 text-center z-10">
         <span className="font-playfair text-[10px] tracking-[0.25em] text-[#C59B27] uppercase font-bold mb-1.5">
           Wedding Editorial
         </span>
@@ -55,107 +95,91 @@ export default function EditorialSpread() {
           కళ్యాణ మహోత్సవం
         </h2>
         <div className="w-16 h-[1.5px] bg-[#C59B27]" />
-      </motion.div>
+      </div>
 
-      {/* Vogue Asymmetrical Photo Spread Layout */}
-      <div className="w-full max-w-xl flex flex-col gap-12 relative z-10">
+      {/* 3-Portrait Editorial Composition */}
+      <div className="w-full max-w-xl relative flex items-center justify-center min-h-[380px] sm:min-h-[460px] md:min-h-[500px] z-10 px-2 my-4">
         
-        {/* Row 1: Large Portrait Photo (Anchor) + Editorial Caption */}
-        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
-          
-          {/* Main Portrait Frame */}
-          <motion.div 
-            style={{ y: yPhoto1 }}
-            className="w-full md:w-[65%] bg-[#FDFBF7] p-3 rounded-lg border-2 gold-foil-border shadow-2xl relative"
-          >
-            {/* Film border */}
-            <div className="absolute inset-1.5 border border-[#C59B27]/30 rounded" />
-            
-            <div className="relative aspect-[3/4] w-full rounded overflow-hidden">
-              <Image 
-                src="/images/couple_portrait_main.png" 
-                alt="Sai Jyoshna & Vikram portrait"
-                fill
-                className="object-cover"
-                sizes="(max-w-768px) 100vw, 360px"
-              />
-            </div>
-            
-            {/* Fine print caption on card plate */}
-            <div className="pt-2 text-center">
-              <p className="font-cormorant text-[9px] tracking-wider uppercase text-[#C59B27] font-bold">
-                Chapter I • Sacred Corridor of Union
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Side Editorial Caption Text */}
-          <motion.div 
-            style={{ opacity: textOpacity, y: textYSpring }}
-            className="w-full md:w-[35%] text-left space-y-4 md:pt-10"
-          >
-            <h3 className="font-playfair text-xl md:text-2xl font-extrabold italic text-[#5E0914] leading-tight">
-              A Love Inscribed in Stone
-            </h3>
-            <p className="font-cormorant text-xs md:text-sm text-[#42040B]/85 leading-relaxed font-semibold">
-              In the quiet temple arches, where pillars stand like witnesses to eternity, two hearts pledge a sacred alliance. 
-            </p>
-            <p className="font-telugu text-[10px] text-[#C59B27] font-bold tracking-wide">
-              నూరు వసంతాల తోడుగా...
-            </p>
-          </motion.div>
-
+        {/* Photo 2: Bride Portrait (Smaller left, slides left) */}
+        <div 
+          ref={brideCardRef}
+          className="absolute left-[0%] sm:left-[6%] w-[32%] aspect-[3/4] bg-[#FDFBF7] p-1.5 sm:p-2 rounded-lg border gold-foil-border shadow-[0_15px_30px_rgba(0,0,0,0.35)] z-30 will-change-transform"
+        >
+          <div className="absolute inset-1 border border-[#C59B27]/25 rounded pointer-events-none" />
+          <div className="relative w-full h-full rounded overflow-hidden">
+            <Image 
+              src="/images/bride.jpg" 
+              alt="Bride Portrait"
+              fill
+              className="object-cover"
+              sizes="(max-w-768px) 33vw, 180px"
+              priority
+            />
+          </div>
+          <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
+            <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
+              వధువు
+            </span>
+          </div>
         </div>
 
-        {/* Row 2: Overlapping Landscape and Square Floating Photos */}
-        <div className="flex justify-between items-start gap-6 mt-4 relative">
-          
-          {/* Photo 2: Hands Detail (Landscape, slides up) */}
-          <motion.div 
-            style={{ y: yPhoto2Spring }}
-            className="w-[48%] bg-[#FDFBF7] p-2.5 rounded-lg border gold-foil-border shadow-xl relative mt-10 z-20"
-          >
-            <div className="absolute inset-1 border border-[#C59B27]/20 rounded" />
-            <div className="relative aspect-[4/3] w-full rounded overflow-hidden">
-              <Image 
-                src="/images/couple_hands_detail.png" 
-                alt="Joined hands ritual detail"
-                fill
-                className="object-cover"
-                sizes="(max-w-768px) 50vw, 240px"
-              />
-            </div>
-            <div className="pt-1.5 text-center">
-              <p className="font-cormorant text-[8px] tracking-widest uppercase text-[#5E0914]/75 font-bold">
-                Kanyadanam Ritual
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Photo 3: Candid Laughing (Portrait/Square, slides down) */}
-          <motion.div 
-            style={{ y: yPhoto3Spring }}
-            className="w-[45%] bg-[#FDFBF7] p-2.5 rounded-lg border gold-foil-border shadow-xl relative z-10"
-          >
-            <div className="absolute inset-1 border border-[#C59B27]/20 rounded" />
-            <div className="relative aspect-square w-full rounded overflow-hidden">
-              <Image 
-                src="/images/couple_laughing_ritual.png" 
-                alt="Candid wedding laughing moment"
-                fill
-                className="object-cover"
-                sizes="(max-w-768px) 50vw, 220px"
-              />
-            </div>
-            <div className="pt-1.5 text-center">
-              <p className="font-cormorant text-[8px] tracking-widest uppercase text-[#5E0914]/75 font-bold">
-                A Lifetime of Smiles
-              </p>
-            </div>
-          </motion.div>
-
+        {/* Photo 1: Couple Portrait (Large center, slides up) */}
+        <div 
+          ref={coupleCardRef}
+          className="w-[50%] aspect-[3/4] bg-[#FDFBF7] p-2.5 sm:p-3.5 rounded-lg border-2 gold-foil-border shadow-[0_20px_45px_-10px_rgba(0,0,0,0.5)] z-20 relative will-change-transform"
+        >
+          <div className="absolute inset-1.5 border border-[#C59B27]/30 rounded pointer-events-none" />
+          <div className="relative w-full h-full rounded overflow-hidden">
+            <Image 
+              src="/images/groom-and-bride.jpg" 
+              alt="Sai Jyoshna & Vikram"
+              fill
+              className="object-cover"
+              sizes="(max-w-768px) 50vw, 280px"
+              priority
+            />
+          </div>
         </div>
 
+        {/* Photo 3: Groom Portrait (Smaller right, slides right) */}
+        <div 
+          ref={groomCardRef}
+          className="absolute right-[0%] sm:right-[6%] w-[32%] aspect-[3/4] bg-[#FDFBF7] p-1.5 sm:p-2 rounded-lg border gold-foil-border shadow-[0_15px_30px_rgba(0,0,0,0.35)] z-10 will-change-transform"
+        >
+          <div className="absolute inset-1 border border-[#C59B27]/25 rounded pointer-events-none" />
+          <div className="relative w-full h-full rounded overflow-hidden">
+            <Image 
+              src="/images/groom.jpg" 
+              alt="Groom Portrait"
+              fill
+              className="object-cover"
+              sizes="(max-w-768px) 33vw, 180px"
+              priority
+            />
+          </div>
+          <div className="absolute bottom-2.5 inset-x-0 text-center pointer-events-none">
+            <span className="font-telugu text-[7px] sm:text-[9px] font-bold text-[#FDFBF7] drop-shadow-md bg-[#5E0914]/80 px-2 py-0.5 rounded-full inline-block">
+              వరుడు
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Editorial Caption Text */}
+      <div 
+        ref={textRef}
+        className="w-full max-w-md text-center mt-12 space-y-3.5 px-4 z-20 will-change-transform"
+      >
+        <h3 className="font-playfair text-lg sm:text-xl font-extrabold italic text-[#5E0914] leading-tight">
+          A Journey Inscribed in Sacred Union
+        </h3>
+        <p className="font-cormorant text-xs sm:text-sm text-[#42040B]/85 leading-relaxed font-semibold">
+          In the warmth of temple gold and the purity of fresh jasmine blossoms, two souls pledge a lifelong walk together, surrounded by the blessings of elders and loved ones.
+        </p>
+        <p className="font-telugu text-[10px] text-[#C59B27] font-bold tracking-wide">
+          నూరు వసంతాల తోడుగా, అడుగడుగునా శుభములతో...
+        </p>
       </div>
 
     </section>

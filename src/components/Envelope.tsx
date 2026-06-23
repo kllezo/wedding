@@ -2,237 +2,284 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WeddingMonogram } from "./TraditionalOrnaments";
-import BananaLeaves from "./BananaLeaves";
-import Toran from "./Toran";
+import { MusicToggleHandle } from "./MusicToggle";
 
 interface EnvelopeProps {
   onOpen: () => void;
+  musicRef?: React.RefObject<MusicToggleHandle | null>;
 }
 
-export default function Envelope({ onOpen }: EnvelopeProps) {
-  const [isSealed, setIsSealed] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isCardSlid, setIsCardSlid] = useState(false);
-  const [shouldRender, setShouldRender] = useState(true);
+export default function Envelope({ onOpen, musicRef }: EnvelopeProps) {
+  const [tapped, setTapped] = useState(false);
+  const [gone, setGone] = useState(false);
 
-  const handleOpen = () => {
-    if (!isSealed) return;
-    
-    // Step 1: Break seal
-    setIsSealed(false);
-    
-    // Step 2: Open top flap after seal breaks (400ms)
-    setTimeout(() => {
-      setIsOpen(true);
-    }, 400);
-
-    // Step 3: Slide card up after flap opens (1400ms)
-    setTimeout(() => {
-      setIsCardSlid(true);
-      onOpen(); // Trigger audio start and page transition
-    }, 1600);
-
-    // Step 4: Fade out and remove envelope overlay from DOM (3400ms)
-    setTimeout(() => {
-      setShouldRender(false);
-    }, 3800);
+  const handleStampTap = () => {
+    if (tapped) return;
+    setTapped(true);
+    musicRef?.current?.play();
+    // Entire envelope fades together: trigger onOpen mid-fade, unmount after
+    setTimeout(() => onOpen(), 500);
+    setTimeout(() => setGone(true), 900);
   };
 
-  if (!shouldRender) return null;
+  if (gone) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#170103]/90 select-none overflow-hidden p-4 backdrop-blur-md">
-        
-        {/* Ambient background particles */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg viewBox=\x220 0 200 200\x22 xmlns=\x22http://www.w3.org/2000/svg\x22%3E%3Cfilter id=\x22noise\x22%3E%3CfeTurbulence type=\x22fractalNoise\x22 baseFrequency=\x220.8\x22 numOctaves=\x223\x22/%3E%3C/filter%3E%3Crect width=\x22100%25\x22 height=\x22100%25\x22 filter=\x22url(%23noise)\x22/%3E%3C/svg%3E')]" />
+    <motion.div
+      className="fixed inset-0 z-50 select-none overflow-hidden"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: tapped ? 0 : 1 }}
+      transition={{ duration: 0.75, ease: "easeInOut" }}
+    >
+      {/* ══════════════════════════════════════════════════════
+          BASE: Rich warm cranberry-maroon field
+          Matches the reference exactly — not too dark, not purple.
+      ══════════════════════════════════════════════════════ */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse at 50% 42%,
+              #8A1020 0%,
+              #6B0C18 35%,
+              #540B14 65%,
+              #3E0810 100%)
+          `,
+        }}
+      />
 
-        {/* 3D Envelope Container */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 1.05, y: -40 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-[360px] h-[500px] rounded-lg shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]"
-          style={{ perspective: 1200 }}
-        >
-          
-          {/* ================= LAYER 1: ENVELOPE BACK PANEL ================= */}
-          <div 
-            className="absolute inset-0 rounded-lg overflow-hidden border border-[#C59B27]/40 shadow-inner z-0"
-            style={{
-              background: "radial-gradient(circle at 50% 50%, #4A050B 30%, #1A0103 100%)",
-            }}
-          >
-            {/* Silk texture */}
-            <div className="absolute inset-0 opacity-[0.04] bg-[url('data:image/svg+xml,%3Csvg viewBox=\x220 0 200 200\x22 xmlns=\x22http://www.w3.org/2000/svg\x22%3E%3Cfilter id=\x22noise\x22%3E%3CfeTurbulence type=\x22fractalNoise\x22 baseFrequency=\x220.9\x22/%3E%3C/filter%3E%3Crect width=\x22100%25\x22 height=\x22100%25\x22 filter=\x22url(%23noise)\x22/%3E%3C/svg%3E')]" />
-            <BananaLeaves position="top-left" size={140} className="top-2 left-2 opacity-20 pointer-events-none" />
-            <BananaLeaves position="top-right" size={140} className="top-2 right-2 opacity-20 pointer-events-none" />
-          </div>
+      {/* Subtle velvet texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          opacity: 0.045,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
 
-          {/* ================= LAYER 2: INVITATION CARD (SLIDES UP) ================= */}
-          <motion.div
-            initial={{ y: 0, scale: 0.95 }}
-            animate={{ 
-              y: isCardSlid ? -260 : 0, 
-              scale: isCardSlid ? 1 : 0.95,
-              z: isCardSlid ? 100 : 0
-            }}
-            transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-x-3.5 top-4 bottom-4 bg-[#FDFBF7] rounded border-2 gold-foil-border shadow-2xl z-10 p-5 overflow-hidden flex flex-col justify-between items-center text-center"
-            style={{
-              background: "radial-gradient(circle, #FDFBF7 60%, #FAF5EA 100%)",
-              boxShadow: "0 -10px 30px -5px rgba(0,0,0,0.3), 0 10px 20px -5px rgba(0,0,0,0.2)",
-            }}
-          >
-            {/* Dashed margins */}
-            <div className="absolute inset-1.5 border border-dashed border-[#C59B27]/40 rounded pointer-events-none" />
-            <div className="absolute inset-3 border border-[#C59B27]/15 rounded pointer-events-none" />
-            
-            <Toran className="absolute top-0 left-0 w-full opacity-80" count={7} />
+      {/* Soft ambient radial vignette — darkens edges slightly */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(10,0,2,0.45) 100%)",
+        }}
+      />
 
-            {/* Content inside sliding preview card */}
-            <div className="my-auto space-y-4 relative z-10">
-              <span className="font-telugu text-[10px] tracking-widest text-[#C59B27] font-semibold block uppercase">
-                Wedding Invitation
-              </span>
-              
-              <div className="space-y-1">
-                <h2 className="font-telugu text-[#5E0914] text-xs font-bold">చి.ల.సౌ. Sai Jyoshna</h2>
-                <div className="font-playfair text-lg text-[#C59B27] italic">&</div>
-                <h2 className="font-telugu text-[#5E0914] text-xs font-bold">చి. Vikram</h2>
-              </div>
+      {/* ══════════════════════════════════════════════════════
+          FOLD LINES
+          Exactly as in the reference: 4 thin gold diagonal lines
+          from each corner converging at the center-point (~50%, 48%).
+          This is the defining graphic language of this envelope.
+      ══════════════════════════════════════════════════════ */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+        viewBox="0 0 100 100"
+      >
+        <defs>
+          {/* Gold gradient for fold lines — brighter near edges, fades to center */}
+          <linearGradient id="fl-tl" x1="0%" y1="0%" x2="50%" y2="48%">
+            <stop offset="0%"   stopColor="#C59B27" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#C59B27" stopOpacity="0.15" />
+          </linearGradient>
+          <linearGradient id="fl-tr" x1="100%" y1="0%" x2="50%" y2="48%">
+            <stop offset="0%"   stopColor="#C59B27" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#C59B27" stopOpacity="0.15" />
+          </linearGradient>
+          <linearGradient id="fl-bl" x1="0%" y1="100%" x2="50%" y2="48%">
+            <stop offset="0%"   stopColor="#C59B27" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#C59B27" stopOpacity="0.15" />
+          </linearGradient>
+          <linearGradient id="fl-br" x1="100%" y1="100%" x2="50%" y2="48%">
+            <stop offset="0%"   stopColor="#C59B27" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#C59B27" stopOpacity="0.15" />
+          </linearGradient>
+        </defs>
 
-              <div className="w-12 h-[0.5px] bg-[#C59B27]/40 mx-auto" />
+        {/* Top-left → center */}
+        <line x1="0" y1="0"   x2="50" y2="48" stroke="url(#fl-tl)" strokeWidth="0.28" />
+        {/* Top-right → center */}
+        <line x1="100" y1="0"   x2="50" y2="48" stroke="url(#fl-tr)" strokeWidth="0.28" />
+        {/* Bottom-left → center */}
+        <line x1="0" y1="100" x2="50" y2="48" stroke="url(#fl-bl)" strokeWidth="0.28" />
+        {/* Bottom-right → center */}
+        <line x1="100" y1="100" x2="50" y2="48" stroke="url(#fl-br)" strokeWidth="0.28" />
+      </svg>
 
-              <span className="font-cormorant text-xs font-bold uppercase tracking-widest text-[#5E0914] block">
-                July 5, 2026
-              </span>
-            </div>
+      {/* ══════════════════════════════════════════════════════
+          GOLD EDGE BORDER — thin continuous gold line
+      ══════════════════════════════════════════════════════ */}
+      {/* Top */}
+      <div className="absolute top-0 left-0 right-0 h-[1.5px] pointer-events-none"
+        style={{ background: "linear-gradient(to right, transparent 0%, #C59B27 15%, #FFF2A3 50%, #C59B27 85%, transparent 100%)", opacity: 0.65 }} />
+      {/* Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
+        style={{ background: "linear-gradient(to right, transparent 0%, #C59B27 15%, #FFF2A3 50%, #C59B27 85%, transparent 100%)", opacity: 0.65 }} />
+      {/* Left */}
+      <div className="absolute top-0 bottom-0 left-0 w-[1.5px] pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent 0%, #C59B27 15%, #FFF2A3 50%, #C59B27 85%, transparent 100%)", opacity: 0.65 }} />
+      {/* Right */}
+      <div className="absolute top-0 bottom-0 right-0 w-[1.5px] pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent 0%, #C59B27 15%, #FFF2A3 50%, #C59B27 85%, transparent 100%)", opacity: 0.65 }} />
 
-            <div className="text-[8px] font-cormorant tracking-[0.25em] text-[#C59B27]/80 uppercase font-bold">
-              Karimnagar
-            </div>
-          </motion.div>
+      {/* ══════════════════════════════════════════════════════
+          CORNER ORNAMENTS
+      ══════════════════════════════════════════════════════ */}
+      <div className="absolute top-[14px] left-[14px] w-12 h-12 pointer-events-none"
+        style={{ borderTop: "1.5px solid rgba(197,155,39,0.5)", borderLeft: "1.5px solid rgba(197,155,39,0.5)" }} />
+      <div className="absolute top-[14px] right-[14px] w-12 h-12 pointer-events-none"
+        style={{ borderTop: "1.5px solid rgba(197,155,39,0.5)", borderRight: "1.5px solid rgba(197,155,39,0.5)" }} />
+      <div className="absolute bottom-[14px] left-[14px] w-12 h-12 pointer-events-none"
+        style={{ borderBottom: "1.5px solid rgba(197,155,39,0.5)", borderLeft: "1.5px solid rgba(197,155,39,0.5)" }} />
+      <div className="absolute bottom-[14px] right-[14px] w-12 h-12 pointer-events-none"
+        style={{ borderBottom: "1.5px solid rgba(197,155,39,0.5)", borderRight: "1.5px solid rgba(197,155,39,0.5)" }} />
 
-          {/* ================= LAYER 3: ENVELOPE FLAPS (FOREGROUND) ================= */}
-          {/* Left Flap */}
-          <div 
-            className="absolute inset-0 z-20 pointer-events-none"
-            style={{
-              clipPath: "polygon(0% 0%, 50% 50%, 0% 100%)",
-              background: "linear-gradient(to right, #3A0307 0%, #5E0914 100%)",
-              boxShadow: "inset -10px 0 20px -10px rgba(0,0,0,0.5)",
-            }}
-          />
+      {/* ══════════════════════════════════════════════════════
+          WAX SEAL + CTA
+          Centered at the fold-line convergence point (~48% from top).
+          The gold ring decoration + stamp image recreates the
+          ornate circular seal visible in the reference.
+      ══════════════════════════════════════════════════════ */}
 
-          {/* Right Flap */}
-          <div 
-            className="absolute inset-0 z-20 pointer-events-none"
-            style={{
-              clipPath: "polygon(100% 0%, 50% 50%, 100% 100%)",
-              background: "linear-gradient(to left, #3A0307 0%, #5E0914 100%)",
-              boxShadow: "inset 10px 0 20px -10px rgba(0,0,0,0.5)",
-            }}
-          />
+      {/* Warm glow halo behind the seal */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: "48%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "min(55vmin, 320px)",
+          height: "min(55vmin, 320px)",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(197,155,39,0.08) 45%, transparent 70%)",
+          filter: "blur(22px)",
+        }}
+      />
 
-          {/* Bottom Flap */}
-          <div 
-            className="absolute inset-0 z-20 pointer-events-none"
-            style={{
-              clipPath: "polygon(0% 100%, 50% 50%, 100% 100%)",
-              background: "linear-gradient(to top, #2C0104 0%, #5E0914 100%)",
-              boxShadow: "inset 0 10px 20px -10px rgba(0,0,0,0.6)",
-            }}
-          >
-            {/* Little gold foil line on bottom flap edges */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 360 500" fill="none">
-              <path d="M 0 500 L 180 250 L 360 500" stroke="#C59B27" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.5" />
-            </svg>
-          </div>
-
-          {/* Top Flap (3D Rotating Flap) */}
-          <motion.div
-            initial={{ rotateX: 0 }}
-            animate={{ rotateX: isOpen ? -180 : 0 }}
-            transition={{ duration: 1.3, ease: [0.25, 1, 0.5, 1] }}
-            className="absolute inset-0 z-30"
-            style={{ 
-              transformOrigin: "top center",
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "visible",
-            }}
-          >
-            {/* Front of Flap (pointing down when closed) */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                clipPath: "polygon(0% 0%, 50% 50%, 100% 0%)",
-                background: "linear-gradient(to bottom, #3A0307 0%, #5E0914 100%)",
-                backfaceVisibility: "visible",
-              }}
-            >
-              {/* Gold borders on flap edge */}
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 360 500" fill="none">
-                <path d="M 0 0 L 180 250 L 360 0" stroke="#C59B27" strokeWidth="1" opacity="0.7" />
-              </svg>
-            </div>
-            
-            {/* Inside / Back of Flap (revealed when flipped open) */}
-            {/* Renders gold leaf paper lining */}
-            <div 
-              className="absolute inset-0 rotate-x-180"
-              style={{
-                clipPath: "polygon(0% 0%, 50% 50%, 100% 0%)",
-                background: "radial-gradient(circle at 50% 0%, #FFF2A3 0%, #A67C1E 100%)",
-                backfaceVisibility: "hidden",
-                transform: "rotateX(180deg)",
-              }}
-            >
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 360 500" fill="none">
-                <path d="M 0 0 L 180 250 L 360 0" stroke="#5E0914" strokeWidth="0.8" opacity="0.4" />
-              </svg>
-            </div>
-          </motion.div>
-
-          {/* ================= LAYER 4: MONOGRAM SEAL & INTERACTIVE BUTTON ================= */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-40 pointer-events-none">
-            
+      {/* Seal group — positioned at convergence point */}
+      <div
+        className="absolute"
+        style={{
+          top: "48%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "clamp(14px, 3vmin, 22px)",
+        }}
+      >
+        <AnimatePresence>
+          {!tapped && (
             <motion.div
-              initial={{ scale: 1 }}
-              animate={{ 
-                scale: isSealed ? [1, 1.03, 1] : 0, 
-                opacity: isSealed ? 1 : 0 
-              }}
-              transition={{ 
-                scale: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-                opacity: { duration: 0.4 }
-              }}
-              className="flex flex-col items-center justify-center p-3 bg-[#300206] rounded-full border border-[#C59B27] shadow-[0_10px_25px_rgba(0,0,0,0.6)] pointer-events-auto cursor-pointer relative w-[130px] h-[130px]"
-              onClick={handleOpen}
+              key="seal-cta"
+              className="flex flex-col items-center pointer-events-auto"
+              style={{ gap: "clamp(14px, 3vmin, 22px)" }}
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3, ease: "easeIn" } }}
+              transition={{ duration: 0.85, ease: "easeOut" }}
             >
-              <div className="absolute inset-1 rounded-full border border-dashed border-[#C59B27]/40" />
-              
-              {/* Micro monogram crest seal */}
-              <WeddingMonogram size={80} />
+              {/* Outer decorative gold ring (SVG) — matches reference's ornate circle */}
+              <motion.div
+                className="relative cursor-pointer"
+                onClick={handleStampTap}
+                animate={{ scale: [1, 1.035, 1] }}
+                transition={{ scale: { repeat: Infinity, duration: 2.8, ease: "easeInOut" } }}
+                style={{
+                  width: "clamp(200px, 38vmin, 268px)",
+                  height: "clamp(200px, 38vmin, 268px)",
+                }}
+              >
+                {/* Gold decorative ring (SVG circles behind the stamp) */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 190 190"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <radialGradient id="ring-gold" cx="50%" cy="35%" r="60%">
+                      <stop offset="0%"   stopColor="#FFF2A3" />
+                      <stop offset="40%"  stopColor="#D4AF37" />
+                      <stop offset="100%" stopColor="#8B6914" />
+                    </radialGradient>
+                  </defs>
+                  {/* Outer thin ring */}
+                  <circle cx="95" cy="95" r="92" fill="none" stroke="url(#ring-gold)" strokeWidth="1.2" opacity="0.7" />
+                  {/* Medium ring with dashes */}
+                  <circle cx="95" cy="95" r="84" fill="none" stroke="url(#ring-gold)" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.55" />
+                  {/* Inner solid ring */}
+                  <circle cx="95" cy="95" r="76" fill="none" stroke="url(#ring-gold)" strokeWidth="1.8" opacity="0.85" />
+                  {/* Dark fill behind stamp for depth */}
+                  <circle cx="95" cy="95" r="74" fill="rgba(30,2,5,0.5)" />
+                  {/* Tiny ornament dots at compass points */}
+                  <circle cx="95" cy="3"   r="2.5" fill="#D4AF37" opacity="0.8" />
+                  <circle cx="95" cy="187" r="2.5" fill="#D4AF37" opacity="0.8" />
+                  <circle cx="3"  cy="95"  r="2.5" fill="#D4AF37" opacity="0.8" />
+                  <circle cx="187" cy="95" r="2.5" fill="#D4AF37" opacity="0.8" />
+                </svg>
 
-              {/* Tap prompt */}
-              <div className="absolute -bottom-11 w-max flex flex-col items-center gap-0.5">
-                <span className="font-telugu text-[10px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FDF0A6] via-[#C59B27] to-[#FDF0A6] tracking-wider animate-pulse">
-                  ఆహ్వానం తెరవండి
-                </span>
-                <span className="font-cormorant text-[7px] font-bold uppercase tracking-[0.2em] text-[#C59B27]/80">
-                  Tap To Open
-                </span>
-              </div>
+                {/* The actual stamp image — sits inside the gold ring */}
+                <div
+                  className="absolute"
+                  style={{
+                    inset: "6%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img
+                    src="/images/stamp.png"
+                    alt="Royal Wax Seal — Tap to Open"
+                    className="w-full h-full object-contain select-none"
+                    draggable={false}
+                    style={{
+                      filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
+                    }}
+                  />
+                </div>
+              </motion.div>
+
+              {/* Telugu + English CTA */}
+              <motion.div
+                className="text-center cursor-pointer"
+                onClick={handleStampTap}
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
+              >
+                {/* Telugu CTA — dominant text, 1.6× original size */}
+                <p
+                  className="font-telugu font-bold gold-foil-text"
+                  style={{
+                    fontSize: "clamp(28px, 5.5vmin, 42px)",
+                    letterSpacing: "0.04em",
+                    filter:
+                      "drop-shadow(0 0 14px rgba(212,175,55,0.55)) drop-shadow(0 2px 8px rgba(0,0,0,0.95))",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  స్వాగతం
+                </p>
+                {/* TAP TO OPEN — 25% larger, wider tracking */}
+                <p
+                  className="font-cormorant font-medium uppercase mt-3"
+                  style={{
+                    fontSize: "clamp(10px, 1.8vmin, 13px)",
+                    letterSpacing: "0.42em",
+                    color: "rgba(255,242,163,0.62)",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.9)",
+                  }}
+                >
+                  TAP TO OPEN
+                </p>
+              </motion.div>
             </motion.div>
-
-          </div>
-
-        </motion.div>
-
+          )}
+        </AnimatePresence>
       </div>
-    </AnimatePresence>
+    </motion.div>
   );
 }

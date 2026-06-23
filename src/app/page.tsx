@@ -1,90 +1,84 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Envelope from "@/components/Envelope";
-import MusicToggle from "@/components/MusicToggle";
+import MusicToggle, { MusicToggleHandle } from "@/components/MusicToggle";
 import PetalRain from "@/components/PetalRain";
 import GlobalBorder from "@/components/GlobalBorder";
 import Hero from "@/components/Hero";
-import Couple from "@/components/Couple";
+import InvitationHero from "@/components/InvitationHero";
+import ScratchCardSection from "@/components/ScratchCardSection";
+import TimelineSection from "@/components/TimelineSection";
 import EditorialSpread from "@/components/EditorialSpread";
-import Details from "@/components/Details";
-import Timeline from "@/components/Timeline";
+import VenueSection from "@/components/VenueSection";
+import FamilySection from "@/components/FamilySection";
 import TeluguInvitation from "@/components/TeluguInvitation";
-import Family from "@/components/Family";
 import Footer from "@/components/Footer";
 
 export default function Home() {
-  // 0: Closed envelope (locked screen)
-  // 2: Opened, scroll unlocked
-  const [welcomeStep, setWelcomeStep] = useState<0 | 2>(0);
-
-  const isOpened = welcomeStep === 2;
+  const [isOpened, setIsOpened] = useState(false);
+  const musicRef = useRef<MusicToggleHandle>(null);
 
   const handleOpenInvitation = () => {
-    setWelcomeStep(2);
+    setIsOpened(true);
+    window.scrollTo(0, 0);
   };
 
   return (
     <div
-      className={`relative min-h-screen parchment-bg kalamkari-watermark transition-colors duration-1000 ${
-        !isOpened ? "h-screen overflow-hidden" : ""
+      className={`relative min-h-screen transition-colors duration-1000 ${
+        !isOpened ? "h-screen overflow-hidden bg-[#170103]" : "parchment-bg kalamkari-watermark"
       }`}
     >
-      <AnimatePresence>
-        {welcomeStep === 0 && (
-          <motion.div
-            key="envelope-welcome"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="fixed inset-0 z-50 pointer-events-auto"
-          >
-            <Envelope onOpen={handleOpenInvitation} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Floating flower petals and gold dust */}
+      <PetalRain />
 
-      {/* Floating flower petals and gold dust raining in background */}
-      {welcomeStep === 2 && <PetalRain />}
+      {/* Persistent floating mute button — always visible */}
+      <MusicToggle ref={musicRef} visible={true} />
 
-      {/* Floating music toggle (plays audio once the invitation is opened) */}
-      <MusicToggle autoPlayTrigger={isOpened} />
+      {/* Screen border (only after opening) */}
+      {isOpened && <GlobalBorder />}
 
-      {/* Persistent screen border system */}
-      {welcomeStep === 2 && <GlobalBorder />}
+      <main className="w-full relative z-20 overflow-x-hidden">
+        <AnimatePresence>
+          {!isOpened ? (
+            <motion.div
+              key="hero-stage"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="w-full h-screen overflow-hidden"
+            >
+              <Hero
+                isOpened={isOpened}
+                onOpen={handleOpenInvitation}
+                musicRef={musicRef}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="invitation-stage"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="w-full pt-0 pb-4"
+            >
+              {/* Full viewport stage for doors sliding reveal */}
+              <InvitationHero />
 
-      {/* Main website content underneath */}
-      {welcomeStep === 2 && (
-        <motion.main
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="w-full relative z-20 overflow-x-hidden pt-4 pb-4"
-        >
-          {/* Intricate decorative border framing content wrapper on desktop */}
-          <div className="max-w-screen-md mx-auto relative px-3 md:px-0">
-            <Hero />
-            
-            <Couple />
-
-            <EditorialSpread />
-            
-            <Details />
-            
-            <Timeline />
-            
-            <TeluguInvitation />
-            
-            <Family />
-            
-            <Footer />
-          </div>
-        </motion.main>
-      )}
+              {/* Centered content column */}
+              <div className="max-w-screen-md mx-auto relative px-3 md:px-0 mt-4">
+                <ScratchCardSection />
+                <VenueSection />
+                <EditorialSpread />
+                <TimelineSection />
+                <TeluguInvitation />
+                <FamilySection />
+                <Footer />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
-
-

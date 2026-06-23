@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface ScratchCardProps {
   onComplete?: () => void;
@@ -22,16 +22,19 @@ interface Particle {
 export default function ScratchCard({ onComplete, children }: ScratchCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleCanvasRef = useRef<HTMLCanvasElement>(null);
+  
   const [isRevealed, setIsRevealed] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  
   const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Resize canvas to cover container exactly
+  // Resize canvases to cover container exactly
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current && canvasRef.current) {
+      if (containerRef.current && canvasRef.current && particleCanvasRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setCanvasSize({ width: rect.width, height: rect.height });
       }
@@ -44,14 +47,19 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
 
   // Initialize Canvas Gold Foil Layer
   useEffect(() => {
-    if (canvasSize.width === 0 || canvasSize.height === 0 || !canvasRef.current) return;
+    if (canvasSize.width === 0 || canvasSize.height === 0 || !canvasRef.current || !particleCanvasRef.current) return;
+    
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Reset dimensions
+    // Reset dimensions for both canvases
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
+
+    const pCanvas = particleCanvasRef.current;
+    pCanvas.width = canvasSize.width;
+    pCanvas.height = canvasSize.height;
 
     // Draw Gold Foil Metallic Gradient
     const goldGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -117,32 +125,24 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
 
   // Particle Physics Animation Loop
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const pCanvas = particleCanvasRef.current;
+    if (!pCanvas) return;
+    const pCtx = pCanvas.getContext("2d");
+    if (!pCtx) return;
 
     const animateParticles = () => {
-      // If revealed, we stop drawing particles
-      if (isRevealed) {
-        particlesRef.current = [];
-        return;
-      }
-
       const particles = particlesRef.current;
+      
+      // Clear previous frames
+      pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
       if (particles.length > 0) {
-        // Redraw underlying gold foil to clear old particle positions (temporary composites)
-        // Since we are clearing scratch circles on the main canvas, we cannot easily clear particles 
-        // without erasing gold foil. However, we can switch composite modes to draw on top.
-        ctx.save();
-        ctx.globalCompositeOperation = "source-over";
-        
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.x += p.vx;
           p.y += p.vy;
           p.vy += 0.08; // gravity
-          p.opacity -= 0.02;
+          p.opacity -= 0.015; // smooth fading
           p.life -= 1;
 
           if (p.life <= 0 || p.opacity <= 0) {
@@ -151,16 +151,21 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
           }
 
           // Draw glistening sparkle
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.opacity;
-          ctx.fill();
+          pCtx.beginPath();
+          pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          pCtx.fillStyle = p.color;
+          pCtx.globalAlpha = p.opacity;
+          pCtx.fill();
         }
-        ctx.restore();
       }
 
-      animationFrameRef.current = requestAnimationFrame(animateParticles);
+      // Continue the loop if there are active particles, or if we haven't revealed yet
+      if (particles.length > 0 || !isRevealed) {
+        animationFrameRef.current = requestAnimationFrame(animateParticles);
+      } else {
+        // Clean up loop when all particles are dead
+        animationFrameRef.current = null;
+      }
     };
 
     animationFrameRef.current = requestAnimationFrame(animateParticles);
@@ -172,8 +177,34 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
     };
   }, [isRevealed]);
 
+  // Trigger center particle burst upon full reveal
+  const triggerBurst = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const colors = ["#FFF2A3", "#D4AF37", "#A67C1E", "#FFFFFF", "#FFD700", "#FFDF00"];
+    const burstCount = 65;
+
+    for (let i = 0; i < burstCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 4.5 + 1.5;
+      particlesRef.current.push({
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.2, // upward launch bias
+        size: Math.random() * 2.8 + 0.8,
+        opacity: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 60 + Math.floor(Math.random() * 25),
+      });
+    }
+  };
+
   // Calculate scratched area percentage
   const checkScratchPercentage = () => {
+    if (isRevealed) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -192,16 +223,20 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
         }
       }
 
-      const totalSamples = pixels.length / step;
-      const percentageCleared = transparentPixels / totalSamples;
+      const totalSamples = Math.floor(pixels.length / step);
+      if (totalSamples > 0) {
+        const percentageCleared = transparentPixels / totalSamples;
 
-      // If cleared more than 45%, trigger dissolve reveal
-      if (percentageCleared > 0.45) {
-        setIsRevealed(true);
-        if (onComplete) onComplete();
+        // If cleared more than 55%, trigger dissolve reveal
+        if (percentageCleared > 0.55) {
+          setIsRevealed(true);
+          setIsDrawing(false); // Stop drawing immediately
+          triggerBurst();
+          if (onComplete) onComplete();
+        }
       }
     } catch (e) {
-      // Ignore cross-origin security context issues if any
+      // Ignore security policy issues
     }
   };
 
@@ -216,7 +251,7 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // 1. Draw scratch path (destination-out)
+    // Draw scratch path (destination-out)
     ctx.save();
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
@@ -224,18 +259,18 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
     ctx.fill();
     ctx.restore();
 
-    // 2. Spawn gold dust particles
+    // Spawn gold dust particles on drag
     const colors = ["#FFF2A3", "#D4AF37", "#A67C1E", "#FFFFFF"];
     for (let i = 0; i < 3; i++) {
       particlesRef.current.push({
         x,
         y,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 3 - 1, // shoot slightly upwards
-        size: Math.random() * 2.5 + 0.8,
+        vx: (Math.random() - 0.5) * 3.5,
+        vy: (Math.random() - 0.5) * 2.5 - 0.8, // shoot slightly upwards
+        size: Math.random() * 2.2 + 0.8,
         opacity: 1,
         color: colors[Math.floor(Math.random() * colors.length)],
-        life: 45 + Math.floor(Math.random() * 20),
+        life: 40 + Math.floor(Math.random() * 15),
       });
     }
 
@@ -244,12 +279,13 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
 
   // Event handlers for mouse & touch
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isRevealed) return;
     setIsDrawing(true);
     scratch(e.clientX, e.clientY);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDrawing) return;
+    if (!isDrawing || isRevealed) return;
     scratch(e.clientX, e.clientY);
   };
 
@@ -258,6 +294,7 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isRevealed) return;
     setIsDrawing(true);
     if (e.touches[0]) {
       scratch(e.touches[0].clientX, e.touches[0].clientY);
@@ -265,7 +302,7 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDrawing) return;
+    if (!isDrawing || isRevealed) return;
     if (e.touches[0]) {
       scratch(e.touches[0].clientX, e.touches[0].clientY);
     }
@@ -276,30 +313,50 @@ export default function ScratchCard({ onComplete, children }: ScratchCardProps) 
       ref={containerRef} 
       className="relative w-full overflow-hidden select-none cursor-crosshair rounded-lg"
     >
-      {/* Underlying content (e.g. Muhurtham Altar Card details) */}
+      {/* Underlying content */}
       <div className="w-full relative z-0">
         {children}
       </div>
 
+      {/* Subtle shimmer sheen after reveal */}
+      {isRevealed && (
+        <motion.div
+          initial={{ x: "-150%" }}
+          animate={{ x: "150%" }}
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 0.3 }}
+          className="absolute inset-y-0 w-[60%] pointer-events-none z-25"
+          style={{
+            background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)",
+            transform: "skewX(-20deg)",
+          }}
+        />
+      )}
+
       {/* Gold Foil Scratch Cover Canvas */}
-      <AnimatePresence>
-        {!isRevealed && (
-          <motion.canvas
-            ref={canvasRef}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0 z-30 touch-none"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUpOrLeave}
-            onMouseLeave={handleMouseUpOrLeave}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleMouseUpOrLeave}
-            style={{ width: "100%", height: "100%" }}
-          />
-        )}
-      </AnimatePresence>
+      <canvas
+        ref={canvasRef}
+        style={{
+          opacity: isRevealed ? 0 : 1,
+          scale: isRevealed ? 1.05 : 1,
+          pointerEvents: isRevealed ? "none" : "auto",
+          transition: "opacity 0.8s ease-in-out, transform 0.8s ease-in-out, scale 0.8s ease-in-out",
+        }}
+        className="absolute inset-0 z-30 touch-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseUpOrLeave}
+      />
+
+      {/* Particle Overlay Canvas (Separate layer to prevent messy trails and keep burst rendering while foil fades) */}
+      <canvas
+        ref={particleCanvasRef}
+        className="absolute inset-0 z-40 pointer-events-none"
+        style={{ width: "100%", height: "100%" }}
+      />
     </div>
   );
 }

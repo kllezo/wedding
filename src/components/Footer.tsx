@@ -1,35 +1,12 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { WeddingMonogram } from "./TraditionalOrnaments";
+import { motion } from "framer-motion";
 import Diya from "./Diya";
 import TempleBell from "./TempleBell";
 
 export default function Footer() {
   const footerRef = useRef<HTMLDivElement>(null);
-  
-  // Track scroll progress specifically as the footer enters the screen
-  const { scrollYProgress } = useScroll({
-    target: footerRef,
-    offset: ["start end", "end end"],
-  });
-
-  const springConfig = { damping: 20, stiffness: 60 };
-
-  // Blooming Lotus animation transforms (linked to scroll)
-  const lotusScale = useTransform(scrollYProgress, [0.1, 0.95], [0.65, 1]);
-  const lotusScaleSpring = useSpring(lotusScale, springConfig);
-
-  // Counter-rotating petal layers
-  const rotateOuter = useTransform(scrollYProgress, [0.1, 0.95], [-50, 0]);
-  const rotateOuterSpring = useSpring(rotateOuter, springConfig);
-
-  const rotateInner = useTransform(scrollYProgress, [0.1, 0.95], [50, 0]);
-  const rotateInnerSpring = useSpring(rotateInner, springConfig);
-
-  const finalGlowOpacity = useTransform(scrollYProgress, [0.5, 0.95], [0.1, 1]);
-  const finalGlowSpring = useSpring(finalGlowOpacity, springConfig);
 
   return (
     <footer 
@@ -37,6 +14,15 @@ export default function Footer() {
       className="relative px-6 py-24 bg-transparent text-[#42040B] text-center overflow-hidden flex flex-col items-center select-none border-t border-[#C59B27]/30"
     >
       
+      {/* Background drifting petals and soft gold particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50 z-0">
+        <div className="absolute top-[20%] left-[15%] w-2 h-2 rounded-full bg-[#FFF2A3] opacity-60 blur-[0.5px] animate-pulse" />
+        <div className="absolute top-[50%] right-[20%] w-1.5 h-1.5 rounded-full bg-[#FFF2A3] opacity-60 blur-[0.5px]" />
+        <div className="absolute top-[80%] left-[25%] w-2.5 h-2.5 rounded-full bg-[#D4AF37] opacity-50 blur-[0.5px]" />
+        <div className="absolute top-[40%] left-[30%] w-3 h-3 bg-[#900C3F] opacity-25 rounded-tl-full rounded-br-full rotate-45" />
+        <div className="absolute top-[70%] right-[25%] w-2.5 h-2.5 bg-[#900C3F] opacity-35 rounded-tl-full rounded-br-full -rotate-12" />
+      </div>
+
       {/* Subtle vertical hanging jasmines on corners of footer */}
       <div className="absolute top-0 bottom-0 left-4 w-[1px] bg-dashed border-l border-[#C59B27]/15 pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-4 w-[1px] bg-dashed border-l border-[#C59B27]/15 pointer-events-none" />
@@ -58,110 +44,75 @@ export default function Footer() {
 
       <div className="space-y-6 max-w-md z-10 relative flex flex-col items-center">
         
-        {/* 1. Custom Wedding Monogram Crest Signature */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          className="flex justify-center"
-        >
-          <WeddingMonogram size={105} />
-        </motion.div>
-
-        {/* 2. "ధన్యవాదాలు" (Thank You) with Gold Foil outline glow */}
+        {/* 1. "ధన్యవాదాలు" (Thank You) with Gold Foil outline glow */}
         <motion.h2
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={{ duration: 1, delay: 0.1 }}
           className="font-telugu text-3xl md:text-4xl font-extrabold tracking-wider text-[#5E0914] drop-shadow-sm animate-glow"
         >
           ధన్యవాదాలు
         </motion.h2>
 
-        {/* 3. Gold Tanjore Lotus Mandala (Scroll-driven Counter-Rotating Bloom) */}
-        <motion.div
-          style={{ scale: lotusScaleSpring }}
-          className="w-52 h-52 pointer-events-none my-4 relative flex items-center justify-center"
-        >
-          {/* Radial light aura glowing behind the lotus */}
-          <motion.div 
-            style={{ opacity: finalGlowSpring }}
-            className="absolute w-36 h-36 rounded-full bg-[#FFA500]/5 blur-2xl -z-10"
-          />
-
-          <svg width="100%" height="100%" viewBox="0 0 100 100" fill="#C59B27">
-            <defs>
-              <linearGradient id="lotusGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#A67C1E" />
-                <stop offset="50%" stopColor="#FFF2A3" />
-                <stop offset="100%" stopColor="#A67C1E" />
-              </linearGradient>
-            </defs>
-
-            <circle cx="50" cy="50" r="46" stroke="url(#lotusGold)" strokeWidth="0.8" strokeDasharray="3 3" fill="none" opacity="0.6" />
-            <circle cx="50" cy="50" r="40" stroke="url(#lotusGold)" strokeWidth="1" fill="none" opacity="0.4" />
-
-            {/* Counter-Rotating Layer 1: Outer Petals (Spins Clockwise on scroll) */}
-            <motion.g style={{ rotate: rotateOuterSpring, originX: "50px", originY: "50px" }}>
-              {Array.from({ length: 12 }).map((_, i) => {
-                const angle = (i * 360) / 12;
-                return (
-                  <path
-                    key={`outer-${i}`}
-                    d="M50 50 C38 28, 62 28, 50 12 C38 28, 62 28, 50 50"
-                    transform={`rotate(${angle} 50 50)`}
-                    fill="url(#lotusGold)"
-                    opacity="0.7"
-                  />
-                );
-              })}
-            </motion.g>
-
-            {/* Counter-Rotating Layer 2: Inner Petals (Spins Counter-Clockwise on scroll) */}
-            <motion.g style={{ rotate: rotateInnerSpring, originX: "50px", originY: "50px" }}>
-              {Array.from({ length: 8 }).map((_, i) => {
-                const angle = (i * 360) / 8 + 22.5; // Offset alignment
-                return (
-                  <path
-                    key={`inner-${i}`}
-                    d="M50 50 C42 34, 58 34, 50 22 C42 34, 58 34, 50 50"
-                    transform={`rotate(${angle} 50 50)`}
-                    fill="url(#lotusGold)"
-                    opacity="0.95"
-                    stroke="#5E0914"
-                    strokeWidth="0.3"
-                  />
-                );
-              })}
-            </motion.g>
-
-            {/* Center Core */}
-            <circle cx="50" cy="50" r="10" fill="#5E0914" stroke="url(#lotusGold)" strokeWidth="1" />
-            <circle cx="50" cy="50" r="4" fill="url(#lotusGold)" />
-          </svg>
-        </motion.div>
-
-        {/* 4. Traditional Blessings */}
+        {/* 2. "మీ రాక మా ఆనందాన్ని మరింత పెంచుతుంది" / "May your presence add to our joy" */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="space-y-3 px-4"
+          transition={{ duration: 1, delay: 0.2 }}
+          className="space-y-1.5"
         >
           <p className="font-telugu text-base md:text-lg font-bold leading-relaxed text-[#42040B]/95">
             మీ రాక మా ఆనందాన్ని మరింత పెంచుతుంది
           </p>
           <p className="font-cormorant text-xs uppercase tracking-[0.25em] text-[#C59B27] font-bold">
-            Your presence will grace the occasion with joy
+            May your presence add to our joy
           </p>
+        </motion.div>
+
+        {/* 3. Luxury wax stamp (Same opening stamp image) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.0, ease: "easeOut", delay: 0.4 }}
+          className="w-[110px] h-[110px] select-none my-4 flex items-center justify-center relative drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
+        >
+          <img 
+            src="/images/stamp.png" 
+            alt="Royal Wax Seal" 
+            className="w-full h-full object-contain"
+          />
+        </motion.div>
+
+        {/* 4. SJ ♥ V Monogram Signature */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.0, delay: 0.5 }}
+          className="font-playfair text-2xl md:text-3xl font-extrabold tracking-widest text-[#5E0914] italic gold-foil-text"
+        >
+          SJ ♥ V
+        </motion.div>
+
+        {/* 5. Traditional Blessings */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.0, delay: 0.6 }}
+          className="font-telugu text-[#5E0914] text-sm md:text-base font-bold tracking-[0.15em] leading-relaxed mt-4 space-y-0.5"
+        >
+          <p className="gold-foil-text text-base">శ్రీరస్తు !</p>
+          <p>శుభమస్తు !!</p>
+          <p>కళ్యాణమస్తు !!!</p>
         </motion.div>
 
       </div>
 
-      {/* 5. Row of Lit Brass Diyas at the Bottom */}
+      {/* Lit Diyas at the Bottom */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
