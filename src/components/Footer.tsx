@@ -79,9 +79,9 @@ export default function Footer() {
           transition={{ duration: 1.0, ease: "easeOut", delay: 0.4 }}
           className="select-none my-3 flex items-center justify-center relative"
           style={{
-            width: "clamp(180px, 48vmin, 220px)",
-            height: "clamp(180px, 48vmin, 220px)",
-            filter: "drop-shadow(0 12px 28px rgba(0,0,0,0.45)) drop-shadow(0 0 18px rgba(197,155,39,0.3))",
+            width: "clamp(260px, 70vmin, 320px)",
+            height: "clamp(260px, 70vmin, 320px)",
+            filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.5)) drop-shadow(0 0 28px rgba(197,155,39,0.35))",
           }}
         >
           <img 

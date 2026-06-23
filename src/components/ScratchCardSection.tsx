@@ -10,6 +10,64 @@ import ScratchCard from "./ScratchCard";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// ─── Countdown ────────────────────────────────────────────────────────────
+const WEDDING_DATE = new Date("2026-07-05T08:05:00+05:30");
+
+function useCountdown() {
+  const calc = () => {
+    const diff = WEDDING_DATE.getTime() - Date.now();
+    if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { d, h, m, s };
+  };
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return time;
+}
+
+function CountdownUnit({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <div
+        className="font-playfair font-extrabold text-[#5E0914] leading-none"
+        style={{ fontSize: "clamp(22px, 7vw, 32px)" }}
+      >
+        {String(value).padStart(2, "0")}
+      </div>
+      <div className="font-cormorant text-[8px] uppercase tracking-[0.2em] text-[#C59B27] font-bold">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function WeddingCountdown() {
+  const { d, h, m, s } = useCountdown();
+  return (
+    <div className="mt-5 pt-4 border-t border-[#C59B27]/25">
+      <p className="font-cormorant text-[9px] uppercase tracking-[0.25em] text-[#C59B27] font-bold text-center mb-3">
+        Counting Down To The Muhurtham
+      </p>
+      <div className="flex items-center justify-center gap-3">
+        <CountdownUnit value={d} label="Days" />
+        <span className="font-playfair text-[#C59B27] text-xl font-bold mb-2">:</span>
+        <CountdownUnit value={h} label="Hrs" />
+        <span className="font-playfair text-[#C59B27] text-xl font-bold mb-2">:</span>
+        <CountdownUnit value={m} label="Min" />
+        <span className="font-playfair text-[#C59B27] text-xl font-bold mb-2">:</span>
+        <CountdownUnit value={s} label="Sec" />
+      </div>
+    </div>
+  );
+}
+
 const RosePetalSVG = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M10 2 C6 6, 3 10, 10 18 C17 10, 14 6, 10 2 Z" fill="#900C3F" />
@@ -301,8 +359,8 @@ export default function ScratchCardSection() {
                     </div>
                   </div>
 
-
-                </div>
+                  {/* Countdown — appears after scratch reveal */}
+                  <WeddingCountdown /></div>
               </div>
 
             </div>
