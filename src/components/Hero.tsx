@@ -65,11 +65,12 @@ export default function Hero({ isOpened = false, onOpen = () => {}, musicRef }: 
           <div className="absolute inset-0 bg-gradient-to-b from-[#170103]/85 via-[#170103]/45 to-[#170103]/85 z-10 pointer-events-none" />
           <video
             ref={videoRef}
-            src="/images/hands-video.mp4"
+            src="/images/hands-video.mp4?v=2"
             muted playsInline preload="auto" loop={false} controls={false}
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleEnded}
             className="w-full h-full object-cover"
+            key="hero-video-v2"
           />
         </div>
       )}
