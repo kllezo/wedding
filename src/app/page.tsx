@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Chapter1Welcome from "@/components/Chapter1Welcome";
-import CardCover from "@/components/CardCover";
+import Envelope from "@/components/Envelope";
 import MusicToggle from "@/components/MusicToggle";
 import PetalRain from "@/components/PetalRain";
 import GlobalBorder from "@/components/GlobalBorder";
 import Hero from "@/components/Hero";
 import Couple from "@/components/Couple";
+import EditorialSpread from "@/components/EditorialSpread";
 import Details from "@/components/Details";
 import Timeline from "@/components/Timeline";
 import TeluguInvitation from "@/components/TeluguInvitation";
@@ -16,10 +16,9 @@ import Family from "@/components/Family";
 import Footer from "@/components/Footer";
 
 export default function Home() {
-  // 0: Chapter 1 Sacred Welcome (Diya self-lights, dark temple background)
-  // 1: Chapter 2 Gatefold Card Cover (closed doors, monogram seal button)
-  // 2: Chapters 3-8 Revealed (continuous ivory parchment scroll)
-  const [welcomeStep, setWelcomeStep] = useState<0 | 1 | 2>(0);
+  // 0: Closed envelope (locked screen)
+  // 2: Opened, scroll unlocked
+  const [welcomeStep, setWelcomeStep] = useState<0 | 2>(0);
 
   const isOpened = welcomeStep === 2;
 
@@ -33,39 +32,34 @@ export default function Home() {
         !isOpened ? "h-screen overflow-hidden" : ""
       }`}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {welcomeStep === 0 && (
           <motion.div
-            key="welcome-step"
+            key="envelope-welcome"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: "easeInOut" }}
             className="fixed inset-0 z-50 pointer-events-auto"
           >
-            <Chapter1Welcome onComplete={() => setWelcomeStep(1)} />
+            <Envelope onOpen={handleOpenInvitation} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating flower petals raining in background (active after welcome screen) */}
-      {welcomeStep >= 1 && <PetalRain />}
+      {/* Floating flower petals and gold dust raining in background */}
+      {welcomeStep === 2 && <PetalRain />}
 
-      {/* Opening experience - Gatefold Invitation Cover overlay */}
-      {welcomeStep >= 1 && (
-        <CardCover onOpen={handleOpenInvitation} />
-      )}
-
-      {/* Floating music toggle */}
+      {/* Floating music toggle (plays audio once the invitation is opened) */}
       <MusicToggle autoPlayTrigger={isOpened} />
 
       {/* Persistent screen border system */}
-      {welcomeStep >= 1 && <GlobalBorder />}
+      {welcomeStep === 2 && <GlobalBorder />}
 
-      {/* Main website content underneath the overlay doors */}
-      {welcomeStep >= 1 && (
+      {/* Main website content underneath */}
+      {welcomeStep === 2 && (
         <motion.main
           initial={{ opacity: 0 }}
-          animate={{ opacity: isOpened ? 1 : 0.3 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="w-full relative z-20 overflow-x-hidden pt-4 pb-4"
         >
@@ -74,6 +68,8 @@ export default function Home() {
             <Hero />
             
             <Couple />
+
+            <EditorialSpread />
             
             <Details />
             
@@ -90,4 +86,5 @@ export default function Home() {
     </div>
   );
 }
+
 
