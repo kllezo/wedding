@@ -77,7 +77,12 @@ export default function Footer() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.0, ease: "easeOut", delay: 0.4 }}
-          className="w-[110px] h-[110px] select-none my-4 flex items-center justify-center relative drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
+          className="select-none my-3 flex items-center justify-center relative"
+          style={{
+            width: "clamp(180px, 48vmin, 220px)",
+            height: "clamp(180px, 48vmin, 220px)",
+            filter: "drop-shadow(0 12px 28px rgba(0,0,0,0.45)) drop-shadow(0 0 18px rgba(197,155,39,0.3))",
+          }}
         >
           <img 
             src="/images/stamp.png" 
@@ -86,16 +91,7 @@ export default function Footer() {
           />
         </motion.div>
 
-        {/* 4. SJ ♥ V Monogram Signature */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.0, delay: 0.5 }}
-          className="font-playfair text-2xl md:text-3xl font-extrabold tracking-widest text-[#5E0914] italic gold-foil-text"
-        >
-          SJ ♥ V
-        </motion.div>
+
 
         {/* 5. Traditional Blessings */}
         <motion.div
