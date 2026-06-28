@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Cormorant_Garamond, Noto_Serif_Telugu } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="bg-[#FDFBF7] text-[#42040B] antialiased overflow-x-hidden">
         {children}
+        <Analytics />
       </body>
     </html>
   );
