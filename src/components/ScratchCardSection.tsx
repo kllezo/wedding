@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Calendar, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+import { track } from "@vercel/analytics";
 import TempleBell from "./TempleBell";
 import ScratchCard from "./ScratchCard";
 
@@ -273,7 +274,10 @@ export default function ScratchCardSection() {
             background: "radial-gradient(circle, rgba(253,251,247,0.95) 50%, rgba(250,245,234,0.95) 100%)",
           }}
         >
-          <ScratchCard onComplete={() => setIsScratched(true)}>
+          <ScratchCard onComplete={() => {
+            setIsScratched(true);
+            track("Card Scratched");
+          }}>
             <div className="p-6 md:p-8 relative">
               
               {/* Corner brackets */}

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { track } from "@vercel/analytics";
 import { MusicToggleHandle } from "./MusicToggle";
 
 interface EnvelopeProps {
@@ -16,6 +17,10 @@ export default function Envelope({ onOpen, musicRef }: EnvelopeProps) {
   const handleStampTap = () => {
     if (tapped) return;
     setTapped(true);
+    
+    // Track the invitation opening event
+    track("Invitation Opened");
+
     musicRef?.current?.play();
     // Entire envelope fades together: trigger onOpen mid-fade, unmount after
     setTimeout(() => onOpen(), 500);

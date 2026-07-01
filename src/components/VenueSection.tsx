@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MapPin, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
+import { track } from "@vercel/analytics";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -197,6 +198,7 @@ export default function VenueSection() {
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track("Open Location Clicked")}
               className="flex items-center justify-center gap-2 px-6 py-2.5 rounded bg-gradient-to-r from-[#A67C1E] via-[#FFF2A3] to-[#A67C1E] text-[#42040B] font-bold text-xs uppercase tracking-widest border border-[#8A640F]/40 shadow-md hover:shadow-lg transition-all"
             >
               <Navigation className="w-3.5 h-3.5" />

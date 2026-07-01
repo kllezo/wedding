@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
+import { track } from "@vercel/analytics";
 
 export interface MusicToggleHandle {
   play: () => void;
@@ -39,6 +40,8 @@ const MusicToggle = forwardRef<MusicToggleHandle>(
         if (startedRef.current) return;
         startedRef.current = true;
 
+        track("Music Started");
+
         const audio = getAudio();
         audio
           .play()
@@ -59,6 +62,7 @@ const MusicToggle = forwardRef<MusicToggleHandle>(
       if (!startedRef.current) {
         // Button tapped before stamp — treat as first start
         startedRef.current = true;
+        track("Music Started");
         audio
           .play()
           .then(() => {
@@ -72,7 +76,9 @@ const MusicToggle = forwardRef<MusicToggleHandle>(
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
+        track("Music Muted");
       } else {
+        track("Music Unmuted");
         audio
           .play()
           .then(() => setIsPlaying(true))
